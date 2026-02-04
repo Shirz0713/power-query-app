@@ -93,11 +93,12 @@ if st.button("🔍 批量查询数据", type="primary", use_container_width=True
         total_power = result["power_kwh"].sum()
         avg_price = total_fee / total_power if total_power > 0 else 0
 
-
+        
         st.metric("🔌 总发电量", f"{total_power:,.0f} kWh")
         st.metric("💰 总电费", f"{total_fee:,.0f}元")
         st.metric("🏷️ 平均电价", f"{avg_price:.3f}元/kWh")
-
+        st.metric("已转化为人民币汇率")
+        
         # 数据溯源提示
         st.caption(f"✅ 数据来源：power_data.csv | 共 {len(result)} 条记录")
 
@@ -120,3 +121,4 @@ with st.expander("🔍 数据分布预览（避免查无结果）"):
     coverage = df.groupby(['station', 'year']).size().unstack(fill_value=0)
     st.dataframe(coverage, use_container_width=True)
     st.info("💡 提示：若某场站某年份数值<12，说明该年数据不完整")
+
