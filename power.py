@@ -6,7 +6,7 @@ from datetime import datetime
 def load_data():
     df = pd.read_csv("power_data.csv")
     # 强制校验必要字段
-    required_cols = ["station", "year", "month", "power_kwh", "fee_yuan", "price_yuan_per_kwh"]
+    required_cols = ["station", "year", "month", "power_kwh", "fee_yuan", "price_yuan_per_kwh","currency"]
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         raise ValueError(f"❌ CSV缺少必要列: {missing}。请按规范补充year/month等字段")
@@ -18,7 +18,7 @@ def load_data():
 
 st.set_page_config(page_title="发电数据查询系统（含年份）", layout="centered")
 st.title("⚡ 发电厂站数据查询系统")
-st.caption("✅ 已支持年份筛选｜选择场站+年份+月份，精准查询历史数据")
+st.caption("✅ 选择场站+年份+月份，精准查询历史数据")
 
 try:
     df = load_data()
@@ -73,9 +73,24 @@ if st.button("🔍 批量查询数据", type="primary", use_container_width=True
         st.subheader("📊 查询结果汇总")
         st.dataframe(result, use_container_width=True)
 
+        # 定义汇率常量
+        USD_TO_CNY = 6.95  # 美元汇率
+        EUR_TO_CNY = 8.21  # 欧元汇率
+
+        def convert_fee_to_cny(row):
+            if row["currency"] == "USD":
+                return row["fee_yuan"] * USD_TO_CNY
+            elif row["currency"] == "EUR":
+                return row["fee_yuan"] * EUR_TO_CNY
+            else:
+                return row["fee_yuan"]  # 默认为人民币
+
+        # 应用转换函数并计算总费用
+        result["fee_cny"] = result.apply(convert_fee_to_cny, axis=1)
+        total_fee = result["fee_cny"].sum()
+
         # 添加汇总统计
         total_power = result["power_kwh"].sum()
-        total_fee = result["fee_yuan"].sum()
         avg_price = total_fee / total_power if total_power > 0 else 0
 
 
